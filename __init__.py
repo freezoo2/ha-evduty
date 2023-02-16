@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import timedelta
 from http import HTTPStatus
 import logging
-from typing import Any, dict
+from typing import Any
 
 import requests
 from evdutyfree import EVdutyFree
@@ -87,7 +87,7 @@ class EVdutyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Get new sensor data for EVduty component."""
         try:
             self._authenticate()
-            data: dict[str, Any] = self._evduty.get_station_info(self._station, self._terminal)
+            data: dict[str, Any] = self._evduty.get_terminal_info(self._station, self._terminal)
             
             data[CHARGER_MAX_CURRENT_KEY] = data[CHARGER_CHARGING_PROFILE_KEY][
                 CHARGER_CHARGING_PROFILE_CURRENT_KEY
@@ -108,7 +108,7 @@ class EVdutyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Set maximum charging current for EVduty terminal."""
         try:
             self._authenticate()
-            self._evduty.setMaxChargingCurrent(self._station, charging_current)
+            self._evduty.set_max_charging_current(self._station, self._terminal, charging_current)
         except requests.exceptions.HTTPError as evduty_connection_error:
             if evduty_connection_error.response.status_code == 403:
                 raise InvalidAuth from evduty_connection_error
@@ -126,7 +126,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     evduty = EVdutyFree(
         entry.data[CONF_USERNAME],
         entry.data[CONF_PASSWORD],
-        jwtTokenDrift=UPDATE_INTERVAL,
+        jwt_token_drift=UPDATE_INTERVAL,
     )
     evduty_coordinator = EVdutyCoordinator(
         entry.data[CONF_STATION],
