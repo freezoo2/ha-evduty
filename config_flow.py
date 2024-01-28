@@ -8,6 +8,7 @@ import voluptuous as vol
 from evdutyfree import EVdutyFree
 
 from homeassistant import config_entries, core
+from homeassistant.helpers import selector
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
 
@@ -18,8 +19,6 @@ COMPONENT_DOMAIN = DOMAIN
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_STATION): str,
-        vol.Required(CONF_TERMINAL): str,
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
     }
@@ -42,12 +41,27 @@ async def validate_input(
     return {"title": "EVduty Portal"}
 
 
+def get_stations(username: str, password: str):
+    evd = EVdutyFree(username, password)
+    evd.authenticate()
+    return evd.get_station_ids()
+
+
+def get_terminals(username: str, password: str, station: str):
+    evd = EVdutyFree(username, password)
+    evd.authenticate()
+    return evd.get_terminal_ids(station)
+
+
 class ConfigFlow(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
     """Handle a config flow for EVduty."""
 
     def __init__(self) -> None:
         """Start the EVduty config flow."""
         self._reauth_entry: config_entries.ConfigEntry | None = None
+        self._temp_user = None
+        self._temp_pass = None
+        self._temp_station = None
 
     async def async_step_reauth(self, entry_data: Mapping[str, Any]) -> FlowResult:
         """Perform reauth upon an API authentication error."""
@@ -57,9 +71,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
 
         return await self.async_step_user()
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Handle the initial step."""
         if user_input is None:
             return self.async_show_form(
@@ -70,6 +82,46 @@ class ConfigFlow(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
         errors = {}
 
         try:
+            if CONF_TERMINAL in user_input:
+                info = await validate_input(self.hass, {CONF_USERNAME: self._temp_user,
+                                                             CONF_PASSWORD: self._temp_pass,
+                                                             CONF_STATION: self._temp_station,
+                                                             CONF_TERMINAL: user_input[CONF_TERMINAL]})
+                await self.async_set_unique_id(user_input["terminal"])
+                if not self._reauth_entry:
+                    self._abort_if_unique_id_configured()
+                return self.async_create_entry(title=info["title"], data={CONF_USERNAME: self._temp_user,
+                                                                          CONF_PASSWORD: self._temp_pass,
+                                                                          CONF_STATION: self._temp_station,
+                                                                          CONF_TERMINAL: user_input["terminal"]
+                                                                          })
+            elif CONF_STATION in user_input:
+                terminals = await self.hass.async_add_executor_job(get_terminals,
+                                                                  self._temp_user,
+                                                                  self._temp_pass,
+                                                                  user_input[CONF_STATION])
+                self._temp_station = user_input[CONF_STATION]
+                tt = vol.Schema({vol.Required(CONF_TERMINAL): selector.SelectSelector(
+                    selector.SelectSelectorConfig(options=terminals, translation_key=CONF_TERMINAL))
+                })
+                return self.async_show_form(
+                    step_id="user",
+                    data_schema=tt,
+                )
+            elif CONF_PASSWORD in user_input and CONF_USERNAME in user_input:
+                stations = await self.hass.async_add_executor_job(get_stations,
+                                                       user_input[CONF_USERNAME],
+                                                       user_input[CONF_PASSWORD])
+                self._temp_user = user_input[CONF_USERNAME]
+                self._temp_pass = user_input[CONF_PASSWORD]
+                tt = vol.Schema({vol.Required(CONF_STATION): selector.SelectSelector(
+                    selector.SelectSelectorConfig(options=stations, translation_key=CONF_STATION))
+                })
+                return self.async_show_form(
+                    step_id="user",
+                    data_schema=tt,
+                )
+
             await self.async_set_unique_id(user_input["terminal"])
             if not self._reauth_entry:
                 self._abort_if_unique_id_configured()
