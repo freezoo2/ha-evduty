@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
-from evdutyfree import EVdutyFree
+from evduty import EVduty
 
 from homeassistant import config_entries, core
 from homeassistant.helpers import selector
@@ -32,7 +32,7 @@ async def validate_input(
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
-    evduty = EVdutyFree(data["username"], data["password"])
+    evduty = EVduty(data["username"], data["password"])
     evduty_coordinator = EVdutyCoordinator(data["station"], data["terminal"], evduty, hass)
 
     await evduty_coordinator.async_validate_input()
@@ -42,13 +42,13 @@ async def validate_input(
 
 
 def get_stations(username: str, password: str):
-    evd = EVdutyFree(username, password)
+    evd = EVduty(username, password)
     evd.authenticate()
     return evd.get_station_ids()
 
 
 def get_terminals(username: str, password: str, station: str):
-    evd = EVdutyFree(username, password)
+    evd = EVduty(username, password)
     evd.authenticate()
     return evd.get_terminal_ids(station)
 
