@@ -7,7 +7,7 @@ import logging
 from typing import Any
 
 import requests
-from evdutyfree import EVdutyFree
+from evduty import EVduty
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
@@ -47,7 +47,7 @@ UPDATE_INTERVAL = 30
 class EVdutyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """EVduty Coordinator class."""
 
-    def __init__(self, station: str, terminal: str, evduty: EVdutyFree, hass: HomeAssistant) -> None:
+    def __init__(self, station: str, terminal: str, evduty: EVduty, hass: HomeAssistant) -> None:
         """Initialize."""
         self._station = station
         self._terminal = terminal
@@ -123,7 +123,7 @@ class EVdutyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up EVduty from a config entry."""
-    evduty = EVdutyFree(
+    evduty = EVduty(
         entry.data[CONF_USERNAME],
         entry.data[CONF_PASSWORD],
         jwt_token_drift=UPDATE_INTERVAL,
