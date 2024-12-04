@@ -2,4 +2,6 @@ This is a Home Assistant integration allowing to interact with Ev-Duty charger. 
 
 This will allow easier installation for people who don't know how to get their station and terminal ID.
 
+As there was issue with the evduty-free library, I decided to include an updated version of the lib directly in this project for simplicity
+
 This implementation currently only support getting and setting the max charging current on the charger.

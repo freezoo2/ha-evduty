@@ -3,8 +3,8 @@
     "name": "EVDuty",
     "config_flow": true,
     "documentation": "",
-    "version": "0.0.1",
-    "requirements": ["evduty-free"],
+    "version": "1.0.0",
+    "requirements": [],
     "codeowners": ["@"],
     "iot_class": "cloud_polling",
     "loggers": ["evduty"]
