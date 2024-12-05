@@ -7,7 +7,8 @@ import logging
 from typing import Any
 
 import requests
-from evduty import EVduty
+from importlib import import_module
+EVduty = import_module("custom_components.evduty.evduty").EVduty
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
@@ -43,6 +44,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [Platform.NUMBER, Platform.SWITCH]
 UPDATE_INTERVAL = 30
+
 
 class EVdutyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """EVduty Coordinator class."""
@@ -88,15 +90,15 @@ class EVdutyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             self._authenticate()
             data: dict[str, Any] = self._evduty.get_terminal_info(self._station, self._terminal)
-            
+
             data[CHARGER_MAX_CURRENT_KEY] = data[CHARGER_CHARGING_PROFILE_KEY][
                 CHARGER_CHARGING_PROFILE_CURRENT_KEY
             ]
 
             return data
         except (
-            ConnectionError,
-            requests.exceptions.HTTPError,
+                ConnectionError,
+                requests.exceptions.HTTPError,
         ) as evduty_connection_error:
             raise UpdateFailed from evduty_connection_error
 
@@ -120,6 +122,7 @@ class EVdutyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._set_charging_current, charging_current
         )
         await self.async_request_refresh()
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up EVduty from a config entry."""

@@ -5,7 +5,8 @@ from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
-from evduty import EVduty
+from importlib import import_module
+EVduty = import_module("custom_components.evduty.evduty").EVduty
 
 from homeassistant import config_entries, core
 from homeassistant.helpers import selector
