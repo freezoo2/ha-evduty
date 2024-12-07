@@ -41,7 +41,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.NUMBER, Platform.SWITCH]
+PLATFORMS = [Platform.NUMBER]
 UPDATE_INTERVAL = 30
 
 

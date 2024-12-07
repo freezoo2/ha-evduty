@@ -1,5 +1,4 @@
 """Constants for the EVduty integration."""
-from homeassistant.backports.enum import StrEnum
 
 DOMAIN = "evduty"
 
