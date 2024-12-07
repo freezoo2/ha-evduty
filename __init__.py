@@ -7,8 +7,7 @@ import logging
 from typing import Any
 
 import requests
-from importlib import import_module
-EVduty = import_module("custom_components.evduty.evduty").EVduty
+from .evduty_lib import EVduty
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform

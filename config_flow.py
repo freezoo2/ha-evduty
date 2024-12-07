@@ -5,8 +5,7 @@ from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
-from importlib import import_module
-EVduty = import_module("custom_components.evduty.evduty").EVduty
+from .evduty_lib import EVduty
 
 from homeassistant import config_entries, core
 from homeassistant.helpers import selector
@@ -33,8 +32,8 @@ async def validate_input(
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
-    evduty = EVduty(data["username"], data["password"])
-    evduty_coordinator = EVdutyCoordinator(data["station"], data["terminal"], evduty, hass)
+    evd = EVduty(data["username"], data["password"])
+    evduty_coordinator = EVdutyCoordinator(data["station"], data["terminal"], evd, hass)
 
     await evduty_coordinator.async_validate_input()
 
