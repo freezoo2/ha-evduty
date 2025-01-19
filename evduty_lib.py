@@ -148,6 +148,8 @@ class EVduty:
 
         if "chargingProfile" in terminal:
             return terminal["chargingProfile"]["chargingRate"]
+        elif "savedChargingProfile" in terminal:
+            return terminal["chargingProfile"]["chargingRate"]
 
         return terminal["amperage"]
 

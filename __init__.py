@@ -31,6 +31,7 @@ from .const import (
     CHARGER_NAME_KEY,
     CHARGER_STATUS,
     CHARGER_CHARGING_PROFILE_KEY,
+    CHARGER_CHARGING_PROFILE_KEY_ALT,
     CHARGER_CHARGING_PROFILE_CURRENT_KEY,
     CHARGER_STATION_ID_KEY,
     CHARGER_TERMINAL_ID_KEY,
@@ -89,10 +90,14 @@ class EVdutyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             self._authenticate()
             data: dict[str, Any] = self._evduty.get_terminal_info(self._station, self._terminal)
-
-            data[CHARGER_MAX_CURRENT_KEY] = data[CHARGER_CHARGING_PROFILE_KEY][
-                CHARGER_CHARGING_PROFILE_CURRENT_KEY
-            ]
+            try:
+                data[CHARGER_MAX_CURRENT_KEY] = data[CHARGER_CHARGING_PROFILE_KEY][
+                    CHARGER_CHARGING_PROFILE_CURRENT_KEY
+                ]
+            except KeyError:
+                data[CHARGER_MAX_CURRENT_KEY] = data[CHARGER_CHARGING_PROFILE_KEY_ALT][
+                    CHARGER_CHARGING_PROFILE_CURRENT_KEY
+                ]
 
             return data
         except (
